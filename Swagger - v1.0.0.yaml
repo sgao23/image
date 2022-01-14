@@ -1,0 +1,148 @@
+swagger: "2.0"
+info:
+  description: "An API for logging service events"
+  version: "1.0.0"
+  title: "Service Audit Log"
+  contact:
+    email: "api@specright.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+tags:
+- name: "event"
+  description: "Service audit log events"
+schemes:
+- "https"
+paths:
+  /services/{serviceId}/tasks/{taskId}/events:
+    post:
+      tags:
+      - "event"
+      summary: "Add a new event"
+      description: ""
+      operationId: "addEvent"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "serviceId"
+        required: true
+        type: "number"       
+      - in: "path"
+        name: "taskId"
+        required: true
+        type: "number"      
+      - in: "body"
+        name: "body"
+        description: "Event object that needs to be added"
+        required: true
+        schema:
+          $ref: "#/definitions/CreateEventBody"
+      responses:
+        "200":
+          description: "Event created"
+          schema:
+            $ref: "#/definitions/SingleRecordResponse"
+        "405":
+          description: "Invalid input"
+      security:
+        - sigv4: [ ]
+    get:
+      tags:
+      - "event"
+      summary: "Get events for a service"
+      description: ""
+      operationId: "getEvents"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "serviceId"
+        required: true
+        type: "number"         
+      - in: "path"
+        name: "taskId"
+        required: true
+        type: "string"
+      - in: "query"
+        name: "startDate"
+        type: "string"
+        required: false
+      - in: "query"
+        name: "endDate"
+        type: "string"
+        required: false        
+      responses:
+        "200":
+          description: "Events"
+          schema:
+            $ref: "#/definitions/MultiRecordResponse"
+        "405":
+          description: "Invalid input"
+      security:
+        - sigv4: [ ]
+definitions:
+  CreateEventBody:
+    type: "object"
+    required:
+    - "name"
+    - "description"
+    properties:
+      name:
+        type: "string"
+        example: "Record Insert"
+      description:
+        type: "string"
+        example: "200 records were inserted"
+  Event:
+    type: "object"
+    required:
+    - "name"
+    - "description"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      serviceId:
+        type: "integer"
+        format: "int64"
+      taskId:
+        type: "integer"
+        format: "int64"
+      name:
+        type: "string"
+        example: "Record Insert"
+      description:
+        type: "string"
+        example: "200 records were inserted"
+      createdOn:
+        type: "string"
+        example: "2022-01-05T00:57:22.308Z"
+  SingleRecordResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+      data:
+        $ref: "#/definitions/Event"
+  MultiRecordResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+      data:
+        type: "array"
+        items:
+          $ref: "#/definitions/Event"        
+components:
+  securitySchemes:
+    sigv4:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "awsSigv4"  
+x-amazon-apigateway-importexport-version: "1.0"      
